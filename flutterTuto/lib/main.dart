@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         title: 'Namer App',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         ),
         home: MyHomePage(),
       ),
@@ -27,9 +27,19 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-
+  var likeList = <WordPair>[];
+  
   void update() {
     current = WordPair.random();
+    notifyListeners();
+  }
+  
+  void updateLiked(){
+    if(likeList.contains(current)){
+      likeList.remove(current);
+    } else{
+      likeList.add(current);
+    }
     notifyListeners();
   }
 }
@@ -64,21 +74,40 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var mixedText = appState.current;
+    
+    IconData icon;
+    if(appState.likeList.contains(mixedText)){
+      icon = Icons.favorite;
+    }else{
+      icon = Icons.favorite_border;
+    }
+    
     return Scaffold(
         body: Center(
           child : Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('A random idea:'),
               Bigcard(
                   pair : mixedText
               ),
               SizedBox(height : 5),
-              ElevatedButton(
+              Row(
+                mainAxisSize : MainAxisSize.min,
+                children : [
+                  ElevatedButton.icon(
+                    onPressed : (){
+                      appState.updateLiked();
+                    },
+                    icon : Icon(icon),
+                    label : Text('Like'),
+                  ),
+                  ElevatedButton(
                   onPressed: () {
                     appState.update();
                   },
                   child: Text('next')),
+                ]
+              ),
             ],
           ),
         )
