@@ -110,41 +110,75 @@ class Generator extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class FavoritePage extends StatelessWidget{
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        body: Row(
-      children: [
-        SafeArea(
-          child: Container(
-            child: NavigationRail(
-              backgroundColor: Colors.white,
-              extended: false,
-              destinations: [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home),
-                  label: Text('home'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.favorite),
-                  label: Text('Like'),
-                ),
-              ],
-              selectedIndex: 0,
-              onDestinationSelected: (value) {
-                print('selected: $value');
-              },
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: Generator(),
-          ),
-        ),
+  Widget build(BuildContext context){
+    var appState = context.watch<MyAppState>();
+    var likeList = appState.likeList;
+    return Column(
+      children : [
+        Text('your liked list count : ${likeList.length}'),
+        for(var word in likeList)
+          Text('${word}')  
       ],
-    ));
+    );
   }
 }
+
+class MyHomePage extends StatefulWidget {
+  State<MyHomePage> createState() => _MyHomePage();
+}
+
+class _MyHomePage extends State<MyHomePage>{
+  
+  var selectedIndex = 0;
+  @override
+  Widget build(BuildContext context) {
+    Widget page;
+    switch(selectedIndex){
+      case 0 : 
+        page = Generator();
+      case 1 : 
+        page = FavoritePage();
+      default :
+        throw UnimplementedError('no widget for $selectedIndex');
+    } 
+    return LayoutBuilder(builder: (context, constraints) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              child: NavigationRail(
+                extended: false,//반응형으로 변경하기 나중에 constraints.maxWidth <= number 
+                backgroundColor : Colors.white,
+                destinations: [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.home),
+                    label: Text('Home'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.favorite),
+                    label: Text('Favorites'),
+                  ),
+                ],
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (value) {
+                  setState(() {
+                    selectedIndex = value;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: Container(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: page,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
