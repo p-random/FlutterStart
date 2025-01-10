@@ -114,12 +114,24 @@ class FavoritePage extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     var appState = context.watch<MyAppState>();
-    var likeList = appState.likeList;
-    return Column(
-      children : [
-        Text('your liked list count : ${likeList.length}'),
-        for(var word in likeList)
-          Text('${word}')  
+    if (appState.likeList.isEmpty) {
+      return Center(
+        child: Text('No favorites yet.'),
+      );
+    }
+
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('You have '
+              '${appState.likeList.length} favorites:'),
+        ),
+        for (var pair in appState.likeList)
+          ListTile(
+            leading: Icon(Icons.favorite),
+            title: Text(pair.asLowerCase),
+          ),
       ],
     );
   }
