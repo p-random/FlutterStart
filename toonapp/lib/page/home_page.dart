@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:toonapp/api/GetData.dart';
+import 'package:toonapp/api/getdata.dart';
 import 'package:toonapp/data/ToonModel.dart';
+import 'webtoon.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -28,7 +29,9 @@ class HomePage extends StatelessWidget {
                   SizedBox(
                     height: 50,
                   ),
-                  Expanded(child: makeList(snapshot)),
+                  Expanded(
+                      child: makeList(
+                          snapshot)), //컬럼 높이가 무한인데 리스트뷰도 그에 따라 무한이 되니까 에러난거야 expanded로 해결
                 ],
               );
             } else {
@@ -40,29 +43,25 @@ class HomePage extends StatelessWidget {
 
   ListView makeList(AsyncSnapshot<List<ToonModel>> snapshot) {
     return ListView.separated(
+      padding: EdgeInsets.all(20),
+      scrollDirection: Axis.horizontal,
       itemBuilder: (context, index) {
         final webtoon = snapshot.data![index];
-        return Column(
-          children: [
-            Image.network(
-              webtoon.thumb,
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(webtoon.title),
-          ],
+        return Webtoon(
+          title: webtoon.title,
+          thumb: webtoon.thumb,
+          id: webtoon.id,
         );
       },
-      separatorBuilder: (context, index) {
-        return SizedBox(
-          width: 20,
-        );
-      },
+      separatorBuilder: (BuildContext context, int index) => const SizedBox(
+        width: 40, // 이 이상 더 안 가까워지는 듯이 아니라 container height를 없애니까 해결됨
+      ),
       itemCount: snapshot.data!.length,
     );
   }
 }
+
+
 
 
 //flutter run -d chrome --web-renderer html --hot  r누르면 재시작 
