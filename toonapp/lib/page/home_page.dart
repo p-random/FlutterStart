@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toonapp/api/getdata.dart';
-import 'package:toonapp/data/ToonModel.dart';
+import 'package:toonapp/data/toon_model.dart';
 import 'webtoon.dart';
 
 class HomePage extends StatelessWidget {

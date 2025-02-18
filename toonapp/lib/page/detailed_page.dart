@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:toonapp/api/getdata.dart';
+import 'package:toonapp/data/toon_detailed_model.dart';
+import 'package:toonapp/data/toon_episode.dart';
 
-class DetailedPage extends StatelessWidget {
+class DetailedPage extends StatefulWidget {
   final String title;
   final dynamic thumb;
   final dynamic id;
@@ -13,6 +16,22 @@ class DetailedPage extends StatelessWidget {
   });
 
   @override
+  State<DetailedPage> createState() => _DetailedPageState();
+}
+
+class _DetailedPageState extends State<DetailedPage> {
+  late Future<ToonDetailedModel> toonDetailedModel;
+  late Future<List<ToonEpisode>> toonEpisodes;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    toonDetailedModel = ApiService().getDetailedById(widget.id);
+    toonEpisodes = ApiService().getEpisodesById(widget.id);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -20,7 +39,7 @@ class DetailedPage extends StatelessWidget {
         elevation: 4,
         backgroundColor: Colors.green,
         title: Text(
-          title,
+          widget.title,
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
@@ -44,15 +63,44 @@ class DetailedPage extends StatelessWidget {
                 ],
               ),
               child: Hero(
-                tag: id,
+                tag: widget.id,
                 child: Image.network(
-                  thumb,
+                  widget.thumb,
                 ),
               ),
             ),
             SizedBox(
               height: 20,
             ),
+            FutureBuilder(
+                future: toonDetailedModel,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: [
+                        Text(snapshot.data!.about),
+                        Text('${snapshot.data!.genre} / ${snapshot.data!.age}'),
+                      ],
+                    );
+                  } else {
+                    return Text("...");
+                  }
+                }),
+            FutureBuilder(
+                future: toonEpisodes,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: [
+                        for (var episode in snapshot
+                            .data!) //{} 없애니까 된다 {} 때문에 set<Text>가 생성되는데 그게 childeren[]이랑 겹쳐서 그런거임
+                          Text(episode.title),
+                      ],
+                    );
+                  } else {
+                    return Text('');
+                  }
+                }),
           ],
         ),
       ),
