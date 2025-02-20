@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toonapp/api/getdata.dart';
 import 'package:toonapp/data/toon_detailed_model.dart';
 import 'package:toonapp/data/toon_episode.dart';
+import 'episode_wiget.dart';
+import 'package:shared_preferences_android/shared_preferences_android.dart';
 
 class DetailedPage extends StatefulWidget {
   final String title;
@@ -22,6 +25,22 @@ class DetailedPage extends StatefulWidget {
 class _DetailedPageState extends State<DetailedPage> {
   late Future<ToonDetailedModel> toonDetailedModel;
   late Future<List<ToonEpisode>> toonEpisodes;
+  late SharedPreferences prefs;
+  bool isLiked = false;
+
+  getPreferences() async {
+    prefs = await SharedPreferences.getInstance();
+    final likedList = prefs.getStringList('likedList');
+    if (likedList != null) {
+      if (likedList.contains(widget.id)) {
+        setState(() {
+          isLiked = true;
+        });
+      }
+    } else {
+      await prefs.setStringList('likedList', []);
+    } //이거가 계속 warning이 났던 이유는 setInstance를 통해 초기화 해줘야 됐기 때문.
+  }
 
   @override
   void initState() {
@@ -29,6 +48,25 @@ class _DetailedPageState extends State<DetailedPage> {
     super.initState();
     toonDetailedModel = ApiService().getDetailedById(widget.id);
     toonEpisodes = ApiService().getEpisodesById(widget.id);
+    getPreferences();
+  }
+
+  editLikedList() async {
+    final likedList = prefs.getStringList('likedList');
+    if (likedList != null) {
+      if (isLiked) {
+        likedList.remove(widget.id);
+        setState(() {
+          isLiked = false;
+        });
+      } else {
+        likedList.add(widget.id);
+        setState(() {
+          isLiked = true;
+        });
+      }
+    }
+    await prefs.setStringList('likedList', likedList!);
   }
 
   @override
@@ -38,6 +76,13 @@ class _DetailedPageState extends State<DetailedPage> {
         centerTitle: true,
         elevation: 4,
         backgroundColor: Colors.green,
+        actions: [
+          IconButton(
+              onPressed: editLikedList,
+              icon: isLiked
+                  ? Icon(Icons.favorite)
+                  : Icon(Icons.favorite_border_outlined)),
+        ],
         title: Text(
           widget.title,
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
@@ -111,30 +156,7 @@ class _DetailedPageState extends State<DetailedPage> {
                         children: [
                           for (var episode in snapshot
                               .data!) //{} 없애니까 된다 {} 때문에 set<Text>가 생성되는데 그게 childeren[]이랑 겹쳐서 그런거임
-                            Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.green,
-                                ),
-                                margin: EdgeInsets.only(bottom: 10),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 20),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        episode.title,
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        color: Colors.white,
-                                      )
-                                    ],
-                                  ),
-                                )),
+                            EpisodeWidget(episode: episode, titleId: widget.id),
                         ],
                       );
                     } else {
